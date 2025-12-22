@@ -1,0 +1,255 @@
+body.cursed-theme {
+  /* Фон: агрессивный, мерцающий градиент */
+  background: repeating-linear-gradient(
+    45deg,
+    #ff00ff, /* Маджента */
+    #ff00ff 10px,
+    #00ff00 10px, /* Яркий зеленый */
+    #00ff00 20px
+  );
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Comic Sans MS', cursive, sans-serif; /* Самый неуместный шрифт */
+  color: #ff0000; /* Ярко-красный текст */
+  text-shadow: 2px 2px 0 #00ffff; /* Кислотный голубой контур */
+  animation: background-shift 1s infinite alternate; /* Анимация смещения фона */
+}
+
+@keyframes background-shift {
+  from { background-position: 0 0; }
+  to { background-position: 40px 40px; }
+}
+
+.cursed-theme .wrapper {
+  /* Рамка: толстая, рваная, мигающая */
+  width: 90%;
+  max-width: 600px;
+  padding: 30px;
+  border: 10px dashed #ffff00; /* Желтая пунктирная рамка */
+  background-color: rgba(255, 165, 0, 0.8); /* Полупрозрачный оранжевый фон */
+  box-shadow: 0 0 50px 10px #ff00ff, inset 0 0 20px #00ffff; /* Неоновое свечение */
+  text-align: center;
+  margin: 20px;
+  animation: border-flash 0.5s infinite step-end; /* Быстрое мигание рамки */
+}
+
+@keyframes border-flash {
+  50% { border-color: #00ff00; }
+}
+
+.cursed-theme h1, h2 {
+  /* Заголовки: огромные и с дополнительным искажением */
+  font-size: 3em;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #0000ff; /* Синий */
+  -webkit-text-stroke: 1px #ffff00; /* Желтый контур */
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+/* --- Элементы управления (Кнопки, Инпуты) --- */
+
+.cursed-theme .btn,
+.cursed-theme .group-btn,
+.cursed-theme .back-btn,
+.cursed-theme .delete,
+.cursed-theme .edit-btn {
+  /* Базовые стили для кликабельных элементов */
+  cursor: wait; /* ПРОКЛЯТЫЙ КУРСОР! */
+  padding: 10px 15px;
+  margin: 5px;
+  border: 5px solid #000000;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: all 0s; /* Отсутствие плавных переходов */
+  box-shadow: 4px 4px 0 #000000; /* Резкая тень */
+}
+
+.cursed-theme .btn:hover,
+.cursed-theme .group-btn:hover,
+.cursed-theme .back-btn:hover,
+.cursed-theme .delete:hover,
+.cursed-theme .edit-btn:hover {
+    /* Неприятный сдвиг при наведении */
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 #000000;
+}
+
+.cursed-theme .btn, .cursed-theme .group-btn {
+  /* Основные кнопки: ослепляющий розовый */
+  background-color: #ff1493;
+  color: #00ffff;
+  border-radius: 0;
+}
+
+.cursed-theme .back-btn {
+  /* Кнопка "Назад": зеленое и красное столкновение */
+  background-color: #00ff00;
+  color: #ff0000;
+  float: left;
+  margin-left: 0;
+  margin-bottom: 20px;
+}
+
+.cursed-theme .delete {
+  /* Кнопки удаления: кричащий оранжевый */
+  background-color: #ff4500;
+  color: #000000;
+  border-color: #ff00ff;
+  font-size: 1.2em;
+}
+
+.cursed-theme .edit-btn {
+  /* Кнопки редактирования: грязно-коричневый */
+  background-color: #a0522d;
+  color: #ffff00;
+  border-color: #ff1493;
+  font-size: 1em;
+}
+
+.cursed-theme .input, .cursed-theme .large-input, .cursed-theme .small-input {
+  /* Поля ввода: контрастные и раздражающие */
+  padding: 10px;
+  margin: 10px 0;
+  width: calc(100% - 20px);
+  border: 3px solid #ff00ff;
+  background-color: #ffffff;
+  color: #800080; /* Пурпурный текст */
+  font-size: 1.2em;
+  text-align: center;
+}
+
+.cursed-theme .large-input {
+    /* Стиль для редактирования заголовка */
+    width: 70%;
+    margin-right: 5px;
+}
+
+.cursed-theme .small-input {
+    /* Стиль для редактирования таски */
+    width: 60%;
+    display: inline-block;
+}
+
+/* --- Списки --- */
+
+.cursed-theme .group-list, .todo-list {
+  /* Общие стили для списков */
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+  border: 5px double #000000;
+  background-color: #ffd700; /* Золотой фон (неприятно) */
+}
+
+.cursed-theme .group-list li, .cursed-theme .todo-list li {
+  /* Элементы списка: агрессивные разделители */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 3px dashed #ff00ff;
+  background-color: #ffa07a; /* Светлый лососевый */
+}
+
+.cursed-theme .group-list li:last-child, .cursed-theme .todo-list li:last-child {
+  border-bottom: none;
+}
+
+.cursed-theme .group-btn {
+  /* Кнопка для перехода в группу */
+  flex-grow: 1;
+  text-align: left;
+  border: none;
+  box-shadow: none;
+  margin: 0;
+  padding: 0;
+  font-size: 1.5em;
+  background: none;
+  color: #0000ff;
+  text-shadow: 1px 1px 0 #ffff00;
+}
+
+.cursed-theme .group-btn:hover {
+    transform: none;
+}
+
+/* --- Стили для TodosView --- */
+
+.cursed-theme .group-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.cursed-theme .group-header h2 {
+    margin: 0 10px 0 0;
+    line-height: 1.2;
+}
+
+.cursed-theme .todo-list li span {
+  /* Текст задачи */
+  flex-grow: 1;
+  text-align: left;
+  margin: 0 10px;
+  word-break: break-all;
+  color: #8b0000; /* Темно-красный */
+  font-style: italic;
+}
+
+.cursed-theme .todo-list li input[type="checkbox"] {
+  /* Чекбокс */
+  transform: scale(2);
+  margin-right: 15px;
+  accent-color: #ff00ff; /* Кислотный цвет */
+}
+
+.cursed-theme .todo-list li.done {
+  /* Завершенная задача */
+  background-color: #90ee90; /* Неприятный светло-зеленый */
+  opacity: 0.7;
+  text-decoration: line-through 4px #000000;
+}
+
+.cursed-theme .todo-list li.done span {
+    color: #4b0082; /* Индиго */
+}
+
+.cursed-theme .theme-toggle-btn {
+  background: #ffff00;
+  color: #ff00ff;
+  border: 5px dotted #00ff00;
+  font-family: 'Comic Sans MS';
+  animation: border-flash 0.2s infinite;
+}
+
+/* Проклятый Header */
+.cursed-theme .header-bar {
+  background: #00ffff;
+  border: 5px solid #ff00ff;
+  transform: rotate(-2deg);
+  margin-top: 10px;
+}
+
+.cursed-theme .user-email {
+  color: #ff0000;
+  font-size: 20px;
+  text-decoration: blink; /* Олдскульно! */
+}
+
+/* Проклятая Авторизация */
+.cursed-theme .auth-card {
+  background: repeating-radial-gradient(circle, #ffa500, #ffa500 10px, #ffffff 10px, #ffffff 20px);
+  border: 10px ridge #00ff00;
+}
+
+.cursed-theme .auth-toggle-btn {
+  color: #0000ff;
+  font-weight: 900;
+  background: #ffff00;
+  border: 2px solid black;
+}
