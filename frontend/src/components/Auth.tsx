@@ -36,7 +36,7 @@ export const Auth = ({ onLogin }: { onLogin: (token: string) => void }) => {
         alert('Критическая ошибка сервера. Посмотрите логи бэкенда.');
         }
     } catch (error) {
-        console.error("Ошибка сети:", error);
+        console.error("Ошибка сети при регистрации:", error);
     }
   };
 

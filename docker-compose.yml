@@ -16,11 +16,18 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
+      - /app/dist
     environment:
       - DATABASE_URL=postgres://user:password@db:5432/todo_db
       - JWT_SECRET=your_jwt_secret_key
     depends_on:
       - db
+    restart: always
+    security_opt:
+      - seccomp:unconfined
+    cap_add:
+      - SYS_ADMIN
+    shm_size: '2gb'
 
   frontend:
     build: ./frontend

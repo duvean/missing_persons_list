@@ -1,17 +1,15 @@
 import { User } from './User.js';
-import { Group } from './Group.js';
-import { Todo } from './Todo.js';
+import { Item } from './Item.js';
 
-// Связи User <-> Group
-User.hasMany(Group, { foreignKey: 'userId', as: 'groups' });
-Group.belongsTo(User, { foreignKey: 'userId' });
-
-// Связи Group <-> Todo
-Group.hasMany(Todo, { 
-    foreignKey: 'groupId', 
-    as: 'todos', 
-    onDelete: 'CASCADE' // При удалении группы удалятся и все её задачи
+// Связи User <-> Item
+// У пользователя может быть много товаров
+User.hasMany(Item, { 
+    foreignKey: 'userId', 
+    as: 'items',
+    onDelete: 'CASCADE' // Если удалить юзера, удалятся и его сохраненки
 });
-Todo.belongsTo(Group, { foreignKey: 'groupId' });
 
-export { User, Group, Todo };
+// Товар принадлежит пользователю
+Item.belongsTo(User, { foreignKey: 'userId' });
+
+export { User, Item };
