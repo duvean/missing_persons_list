@@ -21,97 +21,105 @@ export default function WbDashboard() {
     try {
       const res = await apiFetch("/items", {
         method: "POST",
-        body: JSON.stringify({ 
-            url: urlInput, 
-            targetPrice: targetPrice ? Number(targetPrice) : null 
-        }),
+        body: JSON.stringify({ url: urlInput, targetPrice: targetPrice ? Number(targetPrice) : null }),
       });
-      
-      if (res.ok) {
-        setUrlInput("");
-        setTargetPrice("");
-        loadItems();
-      } else {
-        const err = await res.json();
-        alert(err.error);
-      }
-    } catch (e) {
-      alert("Ошибка сети при парсинге");
-    } finally {
-      setLoading(false);
-    }
+      if (res.ok) { setUrlInput(""); setTargetPrice(""); loadItems(); }
+      else { alert((await res.json()).error); }
+    } catch { alert("Ошибка"); } 
+    finally { setLoading(false); }
   };
 
   const handleDelete = async (id: number) => {
-    if(!confirm("Удалить товар из отслеживания?")) return;
+    if(!confirm("Удалить?")) return;
     const res = await apiFetch(`/items/${id}`, { method: "DELETE" });
-    if (res.ok) {
-        setItems(items.filter(item => item.id !== id));
-    }
+    if (res.ok) setItems(items.filter(item => item.id !== id));
   };
 
   return (
-    <div className="wrapper">
-      {/* Поиск и добавление */}
-      <div className="search-box">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <input 
-            className="input" 
-            placeholder="Ссылка на WB или артикул..." 
+    <div>
+      {/* Поиск / Добавление */}
+      <div className="section-header">
+         <h2 className="section-title">Add Item</h2>
+      </div>
+      
+      <div className="search-wrapper">
+         <svg width="24" height="24" fill="none" stroke="#999" strokeWidth="2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+         </svg>
+         <input 
+            className="search-input" 
+            placeholder="Paste WB link..." 
             value={urlInput}
             onChange={e => setUrlInput(e.target.value)}
-          />
-          
-          <div style={{ display: 'flex', gap: '10px' }}>
+         />
+      </div>
+      {/* Второе поле для цены (если нужно, можно скрыть) */}
+      {urlInput && (
+        <div className="search-wrapper" style={{ marginTop: '-10px' }}>
+            <span style={{fontSize: '1.2rem'}}>🎯</span>
             <input 
-              className="input" 
-              type="number"
-              placeholder="Цена цели..." 
-              value={targetPrice}
-              style={{ flex: 1 }}
-              onChange={e => setTargetPrice(e.target.value)}
+                className="search-input" 
+                type="number"
+                placeholder="Target price (optional)" 
+                value={targetPrice}
+                onChange={e => setTargetPrice(e.target.value)}
             />
-            <button className="btn" onClick={handleAdd} disabled={loading}>
-              {loading ? "..." : "➕"}
+            <button style={{color: 'var(--c-purple-500)', fontWeight: 700}} onClick={handleAdd}>
+                {loading ? "..." : "ADD"}
             </button>
-          </div>
         </div>
+      )}
+
+      {/* Список товаров */}
+      <div className="section-header">
+         <h2 className="section-title">My Tracklist</h2>
+         <span style={{ fontSize: '0.9rem', color: '#aaa' }}>{items.length} items</span>
       </div>
 
-      {/* Сетка товаров (2 колонки) */}
       <div className="items-grid">
         {items.map(item => (
-          <div className="item-card" key={item.id}>
-            <div style={{ position: 'relative' }}>
-                <img src={item.imageUrl} alt={item.name} loading="lazy" />
+          <article className="product" key={item.id}>
+            <div className="product-image-wrapper">
+               <img src={item.imageUrl} alt={item.name} className="product-image" />
             </div>
-            
-            <div className="info">
-                <h3>{item.name}</h3>
-                
-                <div className="price-container">
-                    <span className="current-price">{item.currentPrice} ₽</span>
-                    {item.oldPrice > item.currentPrice && (
-                        <span className="old-price">{item.oldPrice}</span>
-                    )}
-                </div>
-        
-                {item.targetPrice && (
-                    <div className="target-info">
-                        Цель: <b>{item.targetPrice} ₽</b>
-                    </div>
-                )}
+            <div className="product-content">
+               {/* Название */}
+               <h3 className="product-title">{item.name}</h3>
+               
+               {/* Цена */}
+               <span className="product-price">{item.currentPrice} ₽</span>
+               
+               {item.targetPrice && (
+                   <span className="target-badge">Goal: {item.targetPrice}</span>
+               )}
 
-                <p className="meta">Арт: {item.article}</p>
-                <button className="delete" onClick={() => handleDelete(item.id)}>Удалить</button>
+               {/* Кнопки */}
+               <div className="product-info" style={{marginTop: '10px', display: 'flex', justifyContent: 'center'}}>
+                  <div className="product-btn-group">
+                     <button className="product-btn" onClick={() => window.open(item.url, '_blank')}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                            <polyline points="15 3 21 3 21 9"></polyline>
+                            <line x1="10" y1="14" x2="21" y2="3"></line>
+                        </svg>
+                     </button>
+                     <button className="product-btn product-btn--delete" onClick={() => handleDelete(item.id)}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                           <polyline points="3 6 5 6 21 6"></polyline>
+                           <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                     </button>
+                  </div>
+               </div>
             </div>
-          </div>
+          </article>
         ))}
       </div>
       
       {items.length === 0 && (
-          <div style={{textAlign: 'center', color: '#9ca3af', marginTop: '40px'}}>
-              <p>Список пуст. Добавьте первый товар 👆</p>
+          <div style={{ textAlign: 'center', color: '#999', marginTop: '40px' }}>
+              <p>No items yet.</p>
           </div>
       )}
     </div>

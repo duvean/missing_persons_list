@@ -8,50 +8,34 @@ export const Auth = ({ onLogin }: { onLogin: (token: string) => void }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const endpoint = isRegister ? '/auth/register' : '/auth/login';
-    
     try {
         const res = await fetch(`http://localhost:3000/api${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
         });
-
-        const contentType = res.headers.get("content-type");
-        if (contentType && contentType.indexOf("application/json") !== -1) {
         const data = await res.json();
         if (res.ok) {
-            if (isRegister) {
-            alert('Регистрация успешна!');
-            setIsRegister(false);
-            } else {
-            onLogin(data.token);
-            }
-        } else {
-            alert(data.error || 'Ошибка входа');
-        }
-        } else {
-        const textError = await res.text();
-        console.error("Сервер вернул не JSON:", textError);
-        alert('Критическая ошибка сервера. Посмотрите логи бэкенда.');
-        }
-    } catch (error) {
-        console.error("Ошибка сети при регистрации:", error);
-    }
+            if (isRegister) { alert('Success!'); setIsRegister(false); } 
+            else { onLogin(data.token); }
+        } else { alert(data.error); }
+    } catch { alert('Network error'); }
   };
 
   return (
-    <div className="wrapper auth-container">
-      <div className="auth-card">
-        <h1>{isRegister ? 'Создать аккаунт' : 'С возвращением!'}</h1>
+    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      <div className="glass-card" style={{ width: '100%', maxWidth: '400px' }}>
+        <h1 style={{ marginBottom: '20px', color: 'var(--c-grey-900)' }}>Price Pulse</h1>
+        <h3 style={{ marginBottom: '30px', color: 'var(--c-purple-500)' }}>{isRegister ? 'Create Account' : 'Welcome Back'}</h3>
         <form onSubmit={handleSubmit}>
-          <input className="input" type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required />
-          <input className="input" type="password" placeholder="Пароль" value={password} onChange={e => setPassword(e.target.value)} required />
-          <button className="btn" type="submit">{isRegister ? 'Зарегистрироваться' : 'Войти'}</button>
+          <input className="big-input" type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required />
+          <input className="big-input" type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required />
+          <button className="primary-btn" type="submit">{isRegister ? 'Sign Up' : 'Log In'}</button>
         </form>
-        <button className="auth-toggle-btn" onClick={() => setIsRegister(!isRegister)}>
-          {isRegister ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Зарегистрироваться'}
+        <button onClick={() => setIsRegister(!isRegister)} style={{ marginTop: '20px', color: 'var(--c-grey-700)' }}>
+          {isRegister ? 'Have an account? Login' : 'No account? Register'}
         </button>
       </div>
     </div>
   );
-};  
+};
