@@ -43,6 +43,7 @@ export default function WbDashboard() {
   };
 
   const handleDelete = async (id: number) => {
+    if(!confirm("Удалить товар из отслеживания?")) return;
     const res = await apiFetch(`/items/${id}`, { method: "DELETE" });
     if (res.ok) {
         setItems(items.filter(item => item.id !== id));
@@ -50,57 +51,69 @@ export default function WbDashboard() {
   };
 
   return (
-    <div className="wrapper" style={{ maxWidth: '800px' }}>
-      <h1>PRICE PULSE</h1>
-      
-      <div className="search-box" style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}>
-        <input 
-          className="input" 
-          placeholder="Вставьте ссылку на товар или артикул..." 
-          value={urlInput}
-          onChange={e => setUrlInput(e.target.value)}
-        />
-        
-        <div style={{ display: 'flex', gap: '10px' }}>
+    <div className="wrapper">
+      {/* Поиск и добавление */}
+      <div className="search-box">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <input 
+            className="input" 
+            placeholder="Ссылка на WB или артикул..." 
+            value={urlInput}
+            onChange={e => setUrlInput(e.target.value)}
+          />
+          
+          <div style={{ display: 'flex', gap: '10px' }}>
             <input 
               className="input" 
               type="number"
-              placeholder="Уведомить, если цена станет ниже..." 
+              placeholder="Цена цели..." 
               value={targetPrice}
               style={{ flex: 1 }}
               onChange={e => setTargetPrice(e.target.value)}
             />
             <button className="btn" onClick={handleAdd} disabled={loading}>
-              {loading ? "Загрузка..." : "Спарсить"}
+              {loading ? "..." : "➕"}
             </button>
+          </div>
         </div>
       </div>
 
+      {/* Сетка товаров (2 колонки) */}
       <div className="items-grid">
         {items.map(item => (
           <div className="item-card" key={item.id}>
-            <img src={item.imageUrl} alt={item.name} />
+            <div style={{ position: 'relative' }}>
+                <img src={item.imageUrl} alt={item.name} loading="lazy" />
+            </div>
+            
             <div className="info">
                 <h3>{item.name}</h3>
+                
                 <div className="price-container">
                     <span className="current-price">{item.currentPrice} ₽</span>
-                    {item.oldPrice > 0 && (
-                        <span className="old-price">{item.oldPrice} ₽</span>
+                    {item.oldPrice > item.currentPrice && (
+                        <span className="old-price">{item.oldPrice}</span>
                     )}
                 </div>
         
                 {item.targetPrice && (
-                    <p className="target-info">
-                        Цель: <span style={{ color: '#4caf50', fontWeight: 'bold' }}>{item.targetPrice} ₽</span>
-                    </p>
+                    <div className="target-info">
+                        Цель: <b>{item.targetPrice} ₽</b>
+                    </div>
                 )}
 
-                <p className="meta">Артикул: {item.article}</p>
+                <p className="meta">Арт: {item.article}</p>
                 <button className="delete" onClick={() => handleDelete(item.id)}>Удалить</button>
             </div>
           </div>
         ))}
       </div>
+      
+      {items.length === 0 && (
+          <div style={{textAlign: 'center', color: '#9ca3af', marginTop: '40px'}}>
+              <p>Список пуст. Добавьте первый товар 👆</p>
+          </div>
+      )}
     </div>
   );
 }

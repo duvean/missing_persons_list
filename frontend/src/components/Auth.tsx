@@ -16,7 +16,6 @@ export const Auth = ({ onLogin }: { onLogin: (token: string) => void }) => {
         body: JSON.stringify({ email, password }),
         });
 
-        // Проверяем, что сервер вернул JSON, а не HTML-ошибку
         const contentType = res.headers.get("content-type");
         if (contentType && contentType.indexOf("application/json") !== -1) {
         const data = await res.json();

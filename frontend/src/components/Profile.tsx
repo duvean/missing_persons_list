@@ -1,71 +1,83 @@
-import { useState, useEffect } from "react";
 import { apiFetch } from "../api";
 
 const API_URL = "http://localhost:3000";
 
-export default function Profile() {
-  const [user, setUser] = useState<any>(null);
+interface ProfileProps {
+    userData: any;
+    onRefresh: () => void;
+    onLogout: () => void;
+}
 
-  const loadProfile = () => {
-    apiFetch("/auth/me").then(res => res.json()).then(data => setUser(data));
-  };
-
-  useEffect(() => { loadProfile(); }, []);
-
+export default function Profile({ userData, onRefresh, onLogout }: ProfileProps) {
+  
   const handleUnlink = async () => {
     if (!confirm("Отключить уведомления в Telegram?")) return;
     const res = await apiFetch("/auth/unlink-telegram", { method: "POST" });
-    if (res.ok) loadProfile();
+    if (res.ok) onRefresh();
   };
 
-  if (!user) return <div>Загрузка...</div>;
+  if (!userData) return <div className="wrapper">Загрузка профиля...</div>;
 
   const botName = "PricePulseNotifierBot";
-  const link = `https://t.me/${botName}?start=${user.id}`;
-  const avatarSrc = user.telegramAvatar 
-    ? (user.telegramAvatar.startsWith('http') 
-        ? user.telegramAvatar 
-        : `${API_URL}${user.telegramAvatar}`)
+  const link = `https://t.me/${botName}?start=${userData.id}`;
+  
+  const avatarSrc = userData.telegramAvatar 
+    ? (userData.telegramAvatar.startsWith('http') 
+        ? userData.telegramAvatar 
+        : `${API_URL}${userData.telegramAvatar}`)
     : null;
 
   return (
     <div className="wrapper">
-      <h1>Личный кабинет</h1>
-      <div className="card profile-card">
-        {avatarSrc && (
+      <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '15px' }}>
+        
+        {/* Аватарка */}
+        {avatarSrc ? (
           <img 
             src={avatarSrc} 
             alt="Avatar" 
-            className="tg-avatar"
-            onError={(e) => console.error("Image failed to load:", avatarSrc)} 
+            style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', border: '4px solid var(--primary)' }}
+            onError={(e) => console.error("Image failed")} 
           />
+        ) : (
+            <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem' }}>
+                👤
+            </div>
         )}
+
         <div className="profile-info">
-            <p><strong>Email:</strong> {user.email}</p>
-            {user.telegramName && <p><strong>Telegram:</strong> {user.telegramName}</p>}
+            <h2 style={{fontSize: '1.2rem', margin: 0}}>{userData.email}</h2>
+            {userData.telegramName && <p style={{color: 'var(--primary)', fontWeight: 500}}>@{userData.telegramName}</p>}
         </div>
         
-        <hr />
+        <div style={{ width: '100%', height: '1px', background: '#e5e7eb', margin: '10px 0' }} />
 
-        {user.telegramId ? (
-          <div className="status-success">
-            <p>✅ Уведомления активны</p>
-            <button className="btn btn-danger" onClick={handleUnlink}>Отвязать Telegram</button>
+        {/* Статус Telegram */}
+        {userData.telegramId ? (
+          <div style={{ width: '100%' }}>
+            <div style={{ background: '#ecfdf5', color: '#065f46', padding: '10px', borderRadius: '12px', marginBottom: '15px' }}>
+                ✅ Уведомления включены
+            </div>
+            <button className="btn" style={{ background: '#fee2e2', color: '#ef4444', width: '100%' }} onClick={handleUnlink}>
+                Отвязать Telegram
+            </button>
           </div>
         ) : (
-          <div className="status-pending">
-            <p>Уведомления не настроены</p>
-            <a href={link} target="_blank" className="btn">Привязать бота</a>
+          <div style={{ width: '100%' }}>
+            <p style={{marginBottom: '10px', color: '#6b7280'}}>Подключи Telegram, чтобы получать уведомления о скидках</p>
+            <a href={link} target="_blank" className="btn" style={{ textDecoration: 'none', width: '100%' }}>
+                Привязать Telegram
+            </a>
           </div>
         )}
+        
+        <button 
+            onClick={onLogout} 
+            style={{ background: 'transparent', border: 'none', color: '#9ca3af', marginTop: '20px', textDecoration: 'underline', cursor: 'pointer' }}
+        >
+            Выйти из аккаунта
+        </button>
       </div>
-
-      <style>{`
-        .profile-card { display: flex; flex-direction: column; align-items: center; gap: 15px; padding: 20px; text-align: center; }
-        .tg-avatar { width: 80px; height: 80px; border-radius: 50%; border: 3px solid #0088cc; }
-        .btn-danger { background: #ff4d4f; margin-top: 10px; }
-        .status-success { color: #52c41a; }
-      `}</style>
     </div>
   );
 }
