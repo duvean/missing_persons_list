@@ -5,7 +5,7 @@ import { WbItem } from "../interfaces";
 export default function WbDashboard() {
   const [items, setItems] = useState<WbItem[]>([]);
   const [urlInput, setUrlInput] = useState("");
-  const [targetPrice, setTargetPrice] = useState(""); 
+  const [targetPrice, setTargetPrice] = useState("");
   const [loading, setLoading] = useState(false);
 
   const loadItems = async () => {
@@ -23,105 +23,103 @@ export default function WbDashboard() {
         method: "POST",
         body: JSON.stringify({ url: urlInput, targetPrice: targetPrice ? Number(targetPrice) : null }),
       });
-      if (res.ok) { setUrlInput(""); setTargetPrice(""); loadItems(); }
-      else { alert((await res.json()).error); }
-    } catch { alert("Ошибка"); } 
-    finally { setLoading(false); }
+      if (res.ok) {
+        setUrlInput("");
+        setTargetPrice("");
+        loadItems();
+      } else {
+        alert("Ошибка добавления");
+      }
+    } catch { alert("Ошибка сети"); }
+    setLoading(false);
   };
 
   const handleDelete = async (id: number) => {
-    if(!confirm("Удалить?")) return;
+    if (!confirm("Удалить?")) return;
     const res = await apiFetch(`/items/${id}`, { method: "DELETE" });
-    if (res.ok) setItems(items.filter(item => item.id !== id));
+    if (res.ok) setItems(items.filter(i => i.id !== id));
   };
 
   return (
-    <div>
-      {/* Поиск / Добавление */}
-      <div className="section-header">
-         <h2 className="section-title">Add Item</h2>
-      </div>
-      
-      <div className="search-wrapper">
-         <svg width="24" height="24" fill="none" stroke="#999" strokeWidth="2" viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-         </svg>
-         <input 
-            className="search-input" 
-            placeholder="Paste WB link..." 
-            value={urlInput}
-            onChange={e => setUrlInput(e.target.value)}
-         />
-      </div>
-      {/* Второе поле для цены (если нужно, можно скрыть) */}
-      {urlInput && (
-        <div className="search-wrapper" style={{ marginTop: '-10px' }}>
-            <span style={{fontSize: '1.2rem'}}>🎯</span>
-            <input 
-                className="search-input" 
+    <>
+      {/* Search Section */}
+      <section className="section">
+        <div className="section-header">
+          <h2 className="section-title">Add New</h2>
+        </div>
+        <div className="search-wrapper">
+          <div style={{display: 'flex', gap: '10px', marginBottom: '10px'}}>
+             <input 
+                className="modern-input" 
+                placeholder="Link or Article..." 
+                value={urlInput}
+                onChange={e => setUrlInput(e.target.value)}
+             />
+          </div>
+          <div style={{display: 'flex', gap: '10px'}}>
+             <input 
+                className="modern-input" 
                 type="number"
-                placeholder="Target price (optional)" 
+                placeholder="Target Price" 
                 value={targetPrice}
                 onChange={e => setTargetPrice(e.target.value)}
-            />
-            <button style={{color: 'var(--c-purple-500)', fontWeight: 700}} onClick={handleAdd}>
-                {loading ? "..." : "ADD"}
-            </button>
-        </div>
-      )}
-
-      {/* Список товаров */}
-      <div className="section-header">
-         <h2 className="section-title">My Tracklist</h2>
-         <span style={{ fontSize: '0.9rem', color: '#aaa' }}>{items.length} items</span>
-      </div>
-
-      <div className="items-grid">
-        {items.map(item => (
-          <article className="product" key={item.id}>
-            <div className="product-image-wrapper">
-               <img src={item.imageUrl} alt={item.name} className="product-image" />
-            </div>
-            <div className="product-content">
-               {/* Название */}
-               <h3 className="product-title">{item.name}</h3>
-               
-               {/* Цена */}
-               <span className="product-price">{item.currentPrice} ₽</span>
-               
-               {item.targetPrice && (
-                   <span className="target-badge">Goal: {item.targetPrice}</span>
-               )}
-
-               {/* Кнопки */}
-               <div className="product-info" style={{marginTop: '10px', display: 'flex', justifyContent: 'center'}}>
-                  <div className="product-btn-group">
-                     <button className="product-btn" onClick={() => window.open(item.url, '_blank')}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                            <polyline points="15 3 21 3 21 9"></polyline>
-                            <line x1="10" y1="14" x2="21" y2="3"></line>
-                        </svg>
-                     </button>
-                     <button className="product-btn product-btn--delete" onClick={() => handleDelete(item.id)}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                           <polyline points="3 6 5 6 21 6"></polyline>
-                           <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        </svg>
-                     </button>
-                  </div>
-               </div>
-            </div>
-          </article>
-        ))}
-      </div>
-      
-      {items.length === 0 && (
-          <div style={{ textAlign: 'center', color: '#999', marginTop: '40px' }}>
-              <p>No items yet.</p>
+             />
+             <button 
+                className="app-header-btn app-header-btn--active" 
+                onClick={handleAdd}
+                style={{background: 'white', borderRadius: '15px', width: '50px', height: 'auto'}}
+             >
+                {loading ? "..." : "+"}
+             </button>
           </div>
-      )}
-    </div>
+        </div>
+      </section>
+
+      {/* Grid Section */}
+      <section className="section">
+        <div className="section-header">
+          <h2 className="section-title">Tracking ({items.length})</h2>
+          <span className="section-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 256 256">
+                <rect width="256" height="256" fill="none"></rect>
+                <line x1="40" y1="128" x2="216" y2="128" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></line>
+                <polyline points="144 56 216 128 144 200" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></polyline>
+            </svg>
+          </span>
+        </div>
+
+        <div className="product-grid">
+          {items.map(item => (
+            <article className="product" key={item.id}>
+              <div className="product-image">
+                <img src={item.imageUrl} alt={item.name} />
+              </div>
+              <div className="product-content">
+                <h3 className="product-title">{item.name}</h3>
+                <div style={{fontSize: '0.75rem', color: '#999', marginBottom: '5px'}}>
+                    Art: {item.article}
+                </div>
+                
+                {item.targetPrice && (
+                    <div style={{fontSize: '0.7rem', color: '#10b981', background: '#ecfdf5', padding: '2px 6px', borderRadius: '4px', width: 'fit-content'}}>
+                        Goal: {item.targetPrice} ₽
+                    </div>
+                )}
+
+                <div className="product-info">
+                  <span className="product-price">{item.currentPrice} ₽</span>
+                  <button className="product-btn product-btn--delete" onClick={() => handleDelete(item.id)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 256 256" width="16" height="16">
+                      <line x1="200" y1="56" x2="56" y2="200" stroke="currentColor" strokeWidth="20" strokeLinecap="round"/>
+                      <line x1="200" y1="200" x2="56" y2="56" stroke="currentColor" strokeWidth="20" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    </>
   );
 }

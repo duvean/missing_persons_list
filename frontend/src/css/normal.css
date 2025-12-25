@@ -1,5 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Lexend:wght@100;200;300;400;500;600;700;800;900&display=swap");
 
+/* --- RESET & VARIABLES --- */
 :root {
   --c-grey-000: #ffffff;
   --c-grey-100: #f7f5ff;
@@ -10,209 +11,314 @@
   --c-purple-300: #9684fe;
   --c-purple-500: #7762ff;
   --inner-gutter: 1.25rem;
-  --nav-height: 80px;
+  --header-height: 80px;
+  --footer-height: 80px;
 }
 
-/* Сброс и база */
 *, *:before, *:after { box-sizing: border-box; }
 body, h1, h2, h3, h4, p, ul, ol, li, figure { margin: 0; padding: 0; }
-button { border: none; background: transparent; font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-input { font-family: inherit; }
+img { max-width: 100%; display: block; }
+button { border: none; background: transparent; padding: 0; cursor: pointer; font-family: inherit; }
 
-/* Убираем скроллбары, но оставляем прокрутку */
+/* Скрываем скроллбар */
 ::-webkit-scrollbar { display: none; }
 * { scrollbar-width: none; }
 
+/* --- GLOBAL LAYOUT --- */
 body {
   font-family: "Lexend", sans-serif;
+  min-height: 100vh;
   background-color: var(--c-purple-500);
-  color: var(--c-grey-900);
-  overflow: hidden; /* Скролл только внутри app-body */
-  height: 100vh;
-  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden; /* Чтобы фоновые круги не делали скролл */
 }
 
-/* Фон (круги) */
+/* Фоновые круги (Blobs) */
 body::after {
-  content: ""; display: block; width: 80vw; height: 80vw;
-  border-radius: 50%; background-color: rgba(150, 132, 254, 0.5);
-  position: fixed; z-index: -1; top: -35vw; right: -30vw;
+  content: "";
+  display: block;
+  width: 80vw;
+  height: 80vw;
+  border-radius: 50%;
+  background-color: rgba(150, 132, 254, 0.5);
+  position: fixed;
+  z-index: -1;
+  top: -35vw;
+  right: -30vw;
   box-shadow: -10vw 30vw 0 -20vw rgba(150, 132, 254, 0.25);
 }
+
 body::before {
-  content: ""; display: block; width: 60vw; height: 60vw;
-  border-radius: 50%; background-color: rgba(150, 132, 254, 0.75);
-  position: fixed; z-index: -1; top: 50vw; left: -20vw;
+  content: "";
+  display: block;
+  width: 60vw;
+  height: 60vw;
+  border-radius: 50%;
+  background-color: rgba(150, 132, 254, 0.75);
+  position: fixed;
+  z-index: -1;
+  top: 50vw;
+  left: -20vw;
   box-shadow: 20vw 20vw 0 -10vw rgba(150, 132, 254, 0.25);
 }
 
-/* Основной контейнер */
+/* --- APP CONTAINER --- */
 .app {
   background-color: var(--c-grey-100);
-  width: 100%; height: 100%;
-  max-width: 600px; /* Ограничение для десктопа */
-  margin: 0 auto;
-  display: flex; flex-direction: column;
+  width: 100%;
+  height: 100%;
   position: relative;
-  box-shadow: 0 0 40px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-/* Header */
+/* На десктопе делаем вид "мобильного телефона" */
+@media (min-width: 480px) {
+  .app {
+    width: 405px;
+    height: 850px;
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  }
+}
+
+/* --- HEADER --- */
 .app-header {
-  padding: 1rem var(--inner-gutter);
-  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.5rem var(--inner-gutter);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   flex-shrink: 0;
   z-index: 10;
 }
 
-.app-header-title {
-  font-size: 1.25rem; font-weight: 800; color: var(--c-purple-500);
-  display: flex; align-items: center; gap: 8px;
-}
-
 .app-header-btn {
-  width: 40px; height: 40px; border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--c-grey-700); transition: 0.2s ease;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-grey-700);
+  transition: 0.15s ease;
 }
-.app-header-btn:active { transform: scale(0.95); }
 
-/* Main Body */
+.app-header-btn svg { width: 28px; height: 28px; }
+
+.app-header-btn:hover, .app-header-btn--active {
+  background-color: var(--c-grey-000);
+  box-shadow: 0 5px 15px rgba(150, 132, 254, 0.15);
+  color: var(--c-purple-500);
+}
+
+/* --- MAIN BODY --- */
 .app-body {
   flex: 1;
   overflow-y: auto;
-  padding: 0 var(--inner-gutter);
-  padding-bottom: calc(var(--nav-height) + 20px); /* Отступ под навбар */
+  padding-bottom: 100px; /* Отступ под футер */
   padding-top: 10px;
 }
 
-/* Sections */
+.section { margin-bottom: 2rem; }
+
 .section-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 1rem; margin-top: 1.5rem;
+  padding: 0 var(--inner-gutter);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
 }
-.section-title { font-size: 1.25rem; font-weight: 700; color: var(--c-grey-700); }
 
-/* --- Input Search Style --- */
-.search-wrapper {
-  background: var(--c-grey-000);
-  padding: 8px 16px;
-  border-radius: 16px;
-  box-shadow: 0 5px 15px rgba(150, 132, 254, 0.1);
-  display: flex; gap: 10px; margin-bottom: 20px;
+.section-title {
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: var(--c-grey-700);
 }
-.search-input {
-  border: none; outline: none; flex: 1; font-weight: 500; color: var(--c-grey-700);
-  background: transparent;
-}
-.search-input::placeholder { color: #ccc; }
 
-/* --- GRID layout for products --- */
-.items-grid {
+.section-body {
+    padding: 0 var(--inner-gutter);
+}
+
+/* --- PRODUCT GRID (2 Columns) --- */
+.product-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   column-gap: 16px;
-  row-gap: 5rem; /* Большой отступ, т.к. карточки сдвинуты вверх */
-  padding-top: 3rem; /* Место для первой строки */
-  padding-bottom: 2rem;
+  row-gap: 5rem; /* Большой отступ, так как картинки "торчат" вверх */
+  padding: 4rem var(--inner-gutter) 20px; /* Верхний паддинг для первых картинок */
 }
 
-/* --- PRODUCT CARD (Exact Style from Ref) --- */
+/* --- PRODUCT CARD STYLE --- */
 .product {
-  display: flex; flex-direction: column;
+  display: flex;
+  flex-direction: column;
   background-color: var(--c-grey-000);
-  box-shadow: 0 5px 20px 0 rgba(150, 132, 254, 0.15), 0 10px 25px 0 rgba(150, 132, 254, 0.05);
-  border-radius: 20px;
+  box-shadow: 0 5px 20px 0 rgba(150, 132, 254, 0.1), 0 15px 30px 0 rgba(150, 132, 254, 0.05);
+  border-radius: 15px;
   position: relative;
-  transition: transform 0.2s;
-}
-
-.product-image-wrapper {
-  margin-top: -3.5rem; /* Вылет картинки вверх */
-  padding: 0 0.5rem;
-  display: flex; justify-content: center;
+  height: 100%;
 }
 
 .product-image {
-  width: 100%; aspect-ratio: 1; object-fit: contain;
-  filter: drop-shadow(0 8px 12px rgba(150, 132, 254, 0.3));
-  border-radius: 12px;
-  background: #fff; /* Если картинка с фоном */
+  margin-top: -3.5rem; /* Картинка вылезает вверх */
+  padding: 0 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.product-content { padding: 1rem; text-align: center; }
+.product-image img {
+  max-height: 100%;
+  width: auto;
+  filter: drop-shadow(0 5px 15px rgba(150, 132, 254, 0.375));
+  border-radius: 12px;
+}
+
+.product-content {
+  padding: 0.5rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
 
 .product-title {
-  font-size: 0.9rem; line-height: 1.3;
-  color: var(--c-grey-900); font-weight: 600;
-  margin-bottom: 6px;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: 0.9rem;
+  line-height: 1.25;
+  color: var(--c-grey-900);
+  font-weight: 600;
+  margin-bottom: 5px;
+  
+  /* Обрезка текста */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.product-price { font-size: 1rem; color: var(--c-purple-500); font-weight: 700; display: block; margin-bottom: 8px;}
+.product-info {
+  margin-top: auto; /* Прижимает цену и кнопку к низу */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+}
 
-.product-btn-group {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
+.product-price {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--c-purple-300);
 }
 
 .product-btn {
-  width: 32px; height: 32px; border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background-color: var(--c-grey-000);
+  box-shadow: 0 3px 10px rgba(150, 132, 254, 0.25);
   color: var(--c-grey-700);
-  background-color: var(--c-grey-100);
-  box-shadow: 0 3px 8px rgba(150, 132, 254, 0.15);
-  transition: 0.2s;
 }
-.product-btn:active { transform: scale(0.9); }
-.product-btn--delete { color: #ff6b6b; }
+.product-btn--add { color: var(--c-purple-500); }
+.product-btn--delete { color: #ff4d4f; }
 
-/* Target Badge */
-.target-badge {
-    font-size: 0.7rem; background: #e0f2fe; color: #0284c7;
-    padding: 2px 8px; border-radius: 8px; margin-bottom: 5px; display: inline-block;
+/* --- INPUTS --- */
+.search-wrapper {
+    padding: 0 var(--inner-gutter);
+    margin-bottom: 1rem;
 }
+.modern-input {
+    width: 100%;
+    background: #fff;
+    border: none;
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(150, 132, 254, 0.1);
+    color: var(--c-grey-700);
+    font-family: inherit;
+    outline: none;
+}
+.modern-input::placeholder { color: #ccc; }
 
-/* --- FOOTER NAV --- */
+/* --- FOOTER MENU --- */
 .app-footer {
-  position: absolute; bottom: 0; left: 0; width: 100%;
-  padding: 0 1rem 1rem 1rem;
-  z-index: 50;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 0 1rem 1.5rem; /* Отступ снизу для красоты */
+  pointer-events: none; /* Пропускаем клики сквозь контейнер */
 }
 
 .menu-bar {
-  display: flex; align-items: center; justify-content: space-around;
+  display: flex;
+  align-items: center;
+  justify-content: space-around; /* Равномерное распределение */
   border-radius: 24px;
   background-color: #ffffff;
-  box-shadow: 0 -5px 20px rgba(150, 132, 254, 0.15);
+  box-shadow: 0 -5px 15px rgba(150, 132, 254, 0.15);
+  padding: 0 10px;
   height: 70px;
+  pointer-events: auto; /* Включаем клики для меню */
 }
 
 .menu-bar-item {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  color: var(--c-purple-100); text-decoration: none;
-  width: 50%; height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-purple-100);
+  text-decoration: none;
+  flex: 1;
+  height: 100%;
   transition: 0.2s ease;
 }
 
-.menu-bar-item svg, .menu-bar-item img {
-  width: 24px; height: 24px; transition: 0.2s;
+.menu-bar-item svg { width: 24px; height: 24px; margin-bottom: 4px; }
+.menu-bar-item span { font-size: 0.75rem; font-weight: 500; }
+
+.menu-bar-item.active { color: var(--c-purple-500); transform: translateY(-2px); }
+
+/* --- PROFILE CARD --- */
+.profile-card-modern {
+    background-color: var(--c-purple-300);
+    color: white;
+    padding: 30px 20px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 10px 20px rgba(150, 132, 254, 0.4);
+    position: relative;
+    overflow: hidden;
 }
-.menu-bar-item img { border-radius: 50%; border: 2px solid transparent; }
-
-.menu-bar-item--active { color: var(--c-purple-500); }
-.menu-bar-item--active img { border-color: var(--c-purple-500); }
-
-.menu-bar-item-text {
-  font-size: 0.75rem; font-weight: 600; margin-top: 4px;
+.profile-card-modern::after {
+    content: "";
+    position: absolute;
+    top: -20px; right: -20px;
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
 }
 
-/* --- Auth & Profile Cards --- */
+.avatar-large {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    border: 4px solid rgba(255,255,255,0.3);
+    margin-bottom: 15px;
+}
+
+/* --- LOGIN PAGE --- */
 .glass-card {
   background-color: var(--c-grey-000);
   border-radius: 24px; padding: 2rem;
   box-shadow: 0 5px 20px rgba(150, 132, 254, 0.15);
   text-align: center;
 }
+
 .big-input {
     width: 100%; padding: 15px; margin-bottom: 10px;
     border-radius: 12px; background: var(--c-grey-100);
