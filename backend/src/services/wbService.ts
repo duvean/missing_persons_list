@@ -1,11 +1,13 @@
 import isPuppeteer from 'puppeteer-extra';
-const puppeteer = isPuppeteer as any;
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
-// Подключаем плагин скрытия автоматизации
+const puppeteer = isPuppeteer as any;
 puppeteer.use(StealthPlugin());
 
 export const parseWbItem = async (input: string) => {
+
+    const startTime = performance.now();
+
     const match = input.match(/(\d+)/);
     if (!match) throw new Error('Артикул не найден');
     const input_article = match[0];
@@ -46,10 +48,19 @@ export const parseWbItem = async (input: string) => {
         const result = await page.evaluate(() => {
             const cleanPrice = (t: string | null) => t ? parseInt(t.replace(/[^\d]/g, '')) : 0;
 
-            const nameEl = document.querySelector('h1') || document.querySelector('h3[class*="productTitle"]');
-            const priceEl = document.querySelector('h2[class*="mo-typography"]') || document.querySelector('.priceBlockPrice--xf8pi');
-            const oldPriceEl = document.querySelector('span[class*="priceBlockOldPrice"]');
-            const imgEl = document.querySelector('.swiper-slide-active img') || document.querySelector('.mainSlide--TIHn4 img');
+            const nameEl =     document.querySelector('h1') || 
+                               document.querySelector('[class*="productTitle"]');
+
+            const priceEl =    document.querySelector('ins') || 
+                               document.querySelector('[class*="priceBlockPrice"]') ||
+                               document.querySelector('[class*="actual-price"]');
+
+            const oldPriceEl = document.querySelector('del') || 
+                               document.querySelector('[class*="priceBlockOldPrice"]');
+
+            const imgEl =      document.querySelector('.swiper-slide-active img') || 
+                               document.querySelector('[class*="mainSlide"] img') ||
+                               document.querySelector('[class*="zoom-image"] img');
 
             return {
                 name: nameEl?.textContent?.trim() || null,
@@ -63,13 +74,20 @@ export const parseWbItem = async (input: string) => {
             throw new Error("Не удалось извлечь данные (пустые поля после ожидания)");
         }
 
+        const endTime = performance.now();
+        const duration = ((endTime - startTime) / 1000).toFixed(2);
+        console.log(`[⏱] Товар ${input_article} обработан за ${duration} сек.`);
+
         return {
             article: input_article,
             ...result
         };
 
     } catch (e: any) {
+        const endTime = performance.now();
+        const duration = ((endTime - startTime) / 1000).toFixed(2);
         console.error(`[Parser Error] ${e.message}`);
+        console.error(`[⏱] Ошибка через ${duration} сек: ${e.message}`);
         try {
             await page.screenshot({ path: '/app/wb_debug.png' });
             console.log("Аварийный скриншот сохранен: /app/wb_debug.png");

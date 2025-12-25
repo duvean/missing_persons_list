@@ -3,46 +3,68 @@ import { Item } from '../models/Item.js';
 import { parseWbItem } from './wbService.js';
 
 export const initCronTasks = () => {
-    // '0 * * * *'    Запуск каждый час
-    // '*/1 * * * *'  Для отладки раз в минуту
-    cron.schedule('*/1 * * * *', async () => {
+    // '0 * * * *' - каждый час
+    cron.schedule('*/5 * * * *', async () => {
+        const globalStartTime = performance.now();
         console.log('--- Запуск фонового обновления цен ---');
-        
+    
         try {
-            const items = await Item.findAll();
+            let itemsToProcess = await Item.findAll();
+            let attempt = 1;
+            const MAX_ATTEMPTS = 3;
 
-            for (const item of items) {
-                try {
-                    console.log(`Обновление товара: ${item.article}`);
-                    
-                    const freshData = await parseWbItem(item.article.toString());
+            while (itemsToProcess.length > 0 && attempt <= MAX_ATTEMPTS) {
+                if (attempt > 1) {
+                    console.log(`--- Повторная попытка ${attempt} для ${itemsToProcess.length} товаров ---`);
+                    await new Promise(res => setTimeout(res, 10000));
+                }
 
-                    if (item.targetPrice && freshData.currentPrice <= item.targetPrice) {
-                        console.log(`!!! АХТУНГЪ !!!`);
-                        console.log(`Цена на "${item.name}" упала до ${freshData.currentPrice} ₽!`);
-                        console.log(`Порог пользователя: ${item.targetPrice} ₽`);
-                        console.log(`Ссылка: https://www.wildberries.ru/catalog/${item.article}/detail.aspx`);
-                    }
+                const failedItems: any[] = [];
 
-                    await item.update({
-                        currentPrice: freshData.currentPrice,
-                        oldPrice: freshData.oldPrice,
-                        name: freshData.name
-                    });
-                    await new Promise(res => setTimeout(res, 5000));
+                for (const item of itemsToProcess) {
+                    const itemStartTime = performance.now();
+                    try {
+                        console.log(`    [Попытка ${attempt}] Обновление: ${item.article}`);
+    
+                        const freshData = await parseWbItem(item.article.toString());
 
-                } catch (itemError) {
-                    if (itemError instanceof Error) {
-                        console.error(`Ошибка обновления товара ${item.article}:`, itemError.message);
-                    } else {
-                        console.error(`Неопознанный пиздец при обновлении товара ${item.article}`);
+                        if (item.targetPrice && freshData.currentPrice <= item.targetPrice) {
+                            console.log(`    Цена упала! "${item.name}": ${freshData.currentPrice} ₽ (Порог: ${item.targetPrice})`);
+                        }
+
+                        await item.update({
+                            currentPrice: freshData.currentPrice,
+                            oldPrice: freshData.oldPrice,
+                            name: freshData.name
+                        });
+
+                        const itemEndTime = performance.now();
+                        const itemDuration = ((itemEndTime - itemStartTime) / 1000).toFixed(2);
+                        console.log(`    [⏱] Товар ${item.article} обновлен за ${itemDuration} сек.`);
+
+                        await new Promise(res => setTimeout(res, 5000));
+
+                    } catch (itemError: any) {
+                        const itemEndTime = performance.now();
+                        const itemDuration = ((itemEndTime - itemStartTime) / 1000).toFixed(2);
+                        console.error(`    [⏱] Ошибка обхода ${item.article} после ${itemDuration} сек: ${itemError.message}`);
+                        failedItems.push(item);
                     }
                 }
+                itemsToProcess = failedItems;
+                attempt++;
             }
+
+            if (itemsToProcess.length > 0) {
+                console.error(`    Не удалось обновить ${itemsToProcess.length} товаров после ${MAX_ATTEMPTS} попыток.`);
+            }
+
         } catch (error) {
-            console.error('Ошибка в крон-задаче:', error);
+            console.error('Критическая ошибка в крон-задаче:', error);
         }
-        
-        console.log('--- Обновление цен завершено ---');
+
+        const globalEndTime = performance.now();
+        const totalDuration = ((globalEndTime - globalStartTime) / 1000).toFixed(2);
+        console.log(`--- Цикл обновления завершён за ${totalDuration} сек ---`);
     });
 };

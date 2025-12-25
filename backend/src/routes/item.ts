@@ -14,9 +14,7 @@ router.get('/', authenticateToken, async (req: any, res) => {
 router.post('/', authenticateToken, async (req: any, res) => {
     try {
         const { url, targetPrice } = req.body;
-        console.log('DEBUG: Содержимое req.user:', req.user);
         const currentUserId = req.user?.userId || req.user?.id || req.user?.sub;
-        console.log('DEBUG: Итоговый targetUserId для базы:', currentUserId);
 
         if (!currentUserId) {
             throw new Error("ID пользователя не найден в токене. Проверьте auth middleware.");
