@@ -105,10 +105,10 @@ export default function App() {
       <footer className="app-footer">
         <nav className="menu-bar">
           <Link to="/" className={`menu-bar-item ${location.pathname === '/' ? 'active' : ''}`}>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 256 256">
-              <path d="M213.4,109.6L133.4,36.9a8,8,0,0,0-10.8,0l-80,72.7A8,8,0,0,0,40,115.5V208a8,8,0,0,0,8,8H208a8,8,0,0,0,8-8V115.5A8,8,0,0,0,213.4,109.6Z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></path>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+               <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
             </svg>
-            <span>Home</span>
+            <span className="menu-bar-item-text">Dashboard</span>
           </Link>
           
           <Link to="/profile" className={`menu-bar-item ${location.pathname === '/profile' ? 'active' : ''}`}>

@@ -10,9 +10,11 @@ export default function Profile({ userData, onRefresh, onLogout }: any) {
     }
   };
 
-  const avatarSrc = userData.telegramAvatar?.startsWith('http') 
-     ? userData.telegramAvatar 
-     : `http://localhost:3000${userData.telegramAvatar}`;
+  const avatarSrc = userData?.telegramAvatar 
+    ? (userData.telegramAvatar.startsWith('http') 
+        ? userData.telegramAvatar 
+        : `http://localhost:3000${userData.telegramAvatar}`)
+    : null;
 
   const botLink = `https://t.me/PricePulseNotifierBot?start=${userData.id}`;
 

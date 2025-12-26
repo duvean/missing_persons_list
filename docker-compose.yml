@@ -8,6 +8,8 @@ services:
       POSTGRES_DB: todo_db
     ports:
       - "5432:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
 
   backend:
     build: ./backend
@@ -21,7 +23,7 @@ services:
     environment:
       - DATABASE_URL=postgres://user:password@db:5432/todo_db
       - JWT_SECRET=your_jwt_secret_key
-      - TELEGRAM_BOT_TOKEN=8103651866:AAHWkLswMqbMtPmfcrik8v13ZGs_t4wn0ZA
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
     depends_on:
       - db
     restart: always
