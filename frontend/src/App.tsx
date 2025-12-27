@@ -13,6 +13,8 @@ import { apiFetch } from "./api";
 export default function App() {
   const [token, setToken] = useState<string | null>(localStorage.getItem("todo_token"));
   const [user, setUser] = useState<any>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [hasUnread, setHasUnread] = useState(false);
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -25,7 +27,27 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (token) fetchUserProfile();
+    const checkAuth = async () => {
+      if (!token) return;
+      try {
+        const res = await apiFetch("/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          setUserEmail(data.email);
+          
+          const noteRes = await apiFetch("/notifications/unread-count");
+          if (noteRes.ok) {
+            const { count } = await noteRes.json();
+            setHasUnread(count > 0);
+          }
+        } else {
+          handleLogout();
+        }
+      } catch (e) {
+        console.error("Ошибка проверки сессии");
+      }
+    };
+    checkAuth();
   }, [token]);
 
   const handleLogin = (newToken: string) => {
