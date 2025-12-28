@@ -687,9 +687,7 @@ body::before {
 .status-reached {
     color: #27ae60;
 }
-.status-reached .status-icon svg {
-    animation: pulse-ring 2s infinite;
-}
+
 .status-reached .target-val {
     color: #2ecc71;
 }

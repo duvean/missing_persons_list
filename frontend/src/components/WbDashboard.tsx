@@ -32,7 +32,8 @@ const PriceEditor = ({ id, initialPrice, onUpdate, isReached }: any) => {
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                     )}
                 </span>
-                Цель: <span className="target-val">{initialPrice ? `${initialPrice} ₽` : "Не задано"}</span> ✎
+                Цель: <span className="target-val">{initialPrice ? `${ initialPrice.toLocaleString() } ₽` : "Не задано"}</span> 
+            <p style={{ color: "GrayText" }}>✎</p>
             </div>
         );
     }
@@ -208,7 +209,7 @@ export default function WbDashboard() {
              <input 
                 className="modern-input" 
                 type="number"
-                placeholder="Target Price" 
+                placeholder="Target Price (₽)" 
                 value={targetPrice}
                 onChange={e => setTargetPrice(e.target.value)}
              />

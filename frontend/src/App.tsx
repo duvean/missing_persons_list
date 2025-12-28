@@ -151,7 +151,7 @@ export default function App() {
             PRICE PULSE
         </div>
         <div className="header-actions">
-            <button className="app-header-btn app-header-btn--notification" onClick={toggleSidebar}>
+            <button className="app-header-btn app-header-btn--notification app-header-btn--active" onClick={toggleSidebar}>
               <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 256 256" width="24" height="24">
                 <rect width="256" height="256" fill="none"></rect>
                 <path d="M56.2,104a71.9,71.9,0,0,1,72.3-72c39.6,0.3,71.3,33.2,71.3,72.9V112c0,35.8,7.5,56.6,14.1,68a8,8,0,0,1-6.9,12H49a8,8,0,0,1-6.9-12c6.6-11.4,14.1-32.2,14.1-68Z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></path>
