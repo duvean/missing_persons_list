@@ -4,52 +4,52 @@ import { apiFetch } from "../api";
 import { WbItem } from "../interfaces";
 
 const PriceEditor = ({ id, initialPrice, onUpdate, isReached }: any) => {
-    const [price, setPrice] = useState(initialPrice || "");
-    const [isEditing, setIsEditing] = useState(false);
+  const [price, setPrice] = useState(initialPrice || "");
+  const [isEditing, setIsEditing] = useState(false);
 
-    useEffect(() => {
-        setPrice(initialPrice || "");
-    }, [initialPrice]);
+  useEffect(() => {
+    setPrice(initialPrice || "");
+  }, [initialPrice]);
 
-    const handleCommit = () => {
-        const numericPrice = Number(price); 
-        if (numericPrice !== initialPrice && !isNaN(numericPrice)) {
-            onUpdate(id, numericPrice);
-        }
-        setIsEditing(false);
-    };
-
-    if (!isEditing) {
-        return (
-            <div 
-                className={`price-display ${isReached ? 'status-reached' : 'status-waiting'}`} 
-                onClick={() => setIsEditing(true)}
-            >
-                <span className="status-icon">
-                    {isReached ? (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    ) : (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                    )}
-                </span>
-                Цель: <span className="target-val">{initialPrice ? `${ initialPrice.toLocaleString() } ₽` : "Не задано"}</span> 
-            <p style={{ color: "GrayText" }}>✎</p>
-            </div>
-        );
+  const handleCommit = () => {
+    const numericPrice = Number(price);
+    if (numericPrice !== initialPrice && !isNaN(numericPrice)) {
+      onUpdate(id, numericPrice);
     }
+    setIsEditing(false);
+  };
 
+  if (!isEditing) {
     return (
-        <input 
-          type="number" 
-          className="price-edit-input"
-          autoFocus
-          value={price}
-          onClick={(e) => e.stopPropagation()}
-          onChange={(e) => setPrice(e.target.value)}
-          onBlur={handleCommit}
-          onKeyDown={(e) => e.key === "Enter" && handleCommit()}
-      />
+      <div
+        className={`price-display ${isReached ? 'status-reached' : 'status-waiting'}`}
+        onClick={() => setIsEditing(true)}
+      >
+        <span className="status-icon">
+          {isReached ? (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          ) : (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          )}
+        </span>
+        Цель: <span className="target-val">{initialPrice ? `${initialPrice.toLocaleString()} ₽` : "Не задано"}</span>
+        <p style={{ color: "GrayText" }}>✎</p>
+      </div>
     );
+  }
+
+  return (
+    <input
+      type="number"
+      className="price-edit-input"
+      autoFocus
+      value={price}
+      onClick={(e) => e.stopPropagation()}
+      onChange={(e) => setPrice(e.target.value)}
+      onBlur={handleCommit}
+      onKeyDown={(e) => e.key === "Enter" && handleCommit()}
+    />
+  );
 };
 
 export default function WbDashboard() {
@@ -64,48 +64,48 @@ export default function WbDashboard() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const loadItems = async () => {
-      const res = await apiFetch("/items");
-      if (res.ok) {
-        let data = await res.json();
-        setItems(data);
-      }
+    const res = await apiFetch("/items");
+    if (res.ok) {
+      let data = await res.json();
+      setItems(data);
+    }
   };
 
   useEffect(() => {
-      loadItems();
+    loadItems();
 
-      const interval = setInterval(async () => {
-        try {
-            const res = await apiFetch("/items");
-            if (res.ok) {
-                const newData = await res.json();
-                
-                setItems(prevItems => {
-                    // Если количество товаров изменилось, обновляем всё
-                    if (prevItems.length !== newData.length) return newData;
+    const interval = setInterval(async () => {
+      try {
+        const res = await apiFetch("/items");
+        if (res.ok) {
+          const newData = await res.json();
 
-                    // Если количество то же, меняем только данные объектов
-                    return prevItems.map(item => {
-                        const newItem = newData.find((n: any) => n.id === item.id);
-                        if (!newItem) return item;
-                        
-                        // Проверяем, изменилось ли что-то важное
-                        if (
-                            item.lastNotifiedPrice !== newItem.lastNotifiedPrice ||
-                            item.currentPrice !== newItem.currentPrice ||
-                            item.targetPrice !== newItem.targetPrice
-                        ) {
-                            return { ...item, ...newItem };
-                        }
-                        return item;
-                    });
-                });
-            }
-        } catch (e) {
-            console.error("Ошибка фонового обновления");
+          setItems(prevItems => {
+            // Если количество товаров изменилось, обновляем всё
+            if (prevItems.length !== newData.length) return newData;
+
+            // Если количество то же, меняем только данные объектов
+            return prevItems.map(item => {
+              const newItem = newData.find((n: any) => n.id === item.id);
+              if (!newItem) return item;
+
+              // Проверяем, изменилось ли что-то важное
+              if (
+                item.lastNotifiedPrice !== newItem.lastNotifiedPrice ||
+                item.currentPrice !== newItem.currentPrice ||
+                item.targetPrice !== newItem.targetPrice
+              ) {
+                return { ...item, ...newItem };
+              }
+              return item;
+            });
+          });
         }
+      } catch (e) {
+        console.error("Ошибка фонового обновления");
+      }
     }, 10000);
-      return () => clearInterval(interval);
+    return () => clearInterval(interval);
   }, []);
 
   const filteredAndSortedItems = useMemo(() => {
@@ -130,7 +130,7 @@ export default function WbDashboard() {
       alert("Please enter a link or article");
       return;
     }
-    
+
     if (!targetPrice || Number(targetPrice) <= 0) {
       alert("Please set a valid Target Price to start tracking");
       return;
@@ -138,13 +138,13 @@ export default function WbDashboard() {
 
     setLoading(true);
     setIsAdding(true);
-    
+
     try {
       const res = await apiFetch("/items", {
         method: "POST",
-        body: JSON.stringify({ 
-          url: urlInput, 
-          targetPrice: Number(targetPrice) 
+        body: JSON.stringify({
+          url: urlInput,
+          targetPrice: Number(targetPrice)
         }),
       });
 
@@ -178,8 +178,8 @@ export default function WbDashboard() {
       });
 
       if (res.ok) {
-        setItems(prevItems => prevItems.map(item => 
-          item.id === id 
+        setItems(prevItems => prevItems.map(item =>
+          item.id === id
             ? { ...item, targetPrice: Number(newPrice), lastNotifiedPrice: null }
             : item
         ));
@@ -197,29 +197,29 @@ export default function WbDashboard() {
           <h2 className="section-title">Add New</h2>
         </div>
         <div className="search-wrapper">
-          <div style={{display: 'flex', gap: '10px', marginBottom: '10px'}}>
-             <input 
-                className="modern-input" 
-                placeholder="Link or Article..." 
-                value={urlInput}
-                onChange={e => setUrlInput(e.target.value)}
-             />
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+            <input
+              className="modern-input"
+              placeholder="Link or Article..."
+              value={urlInput}
+              onChange={e => setUrlInput(e.target.value)}
+            />
           </div>
-          <div style={{display: 'flex', gap: '10px'}}>
-             <input 
-                className="modern-input" 
-                type="number"
-                placeholder="Target Price (₽)" 
-                value={targetPrice}
-                onChange={e => setTargetPrice(e.target.value)}
-             />
-             <button 
-                className="app-header-btn app-header-btn--active" 
-                onClick={handleAdd}
-                style={{background: 'white', borderRadius: '15px', width: '50px', height: 'auto'}}
-             >
-                {loading ? "..." : "+"}
-             </button>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <input
+              className="modern-input"
+              type="number"
+              placeholder="Target Price (₽)"
+              value={targetPrice}
+              onChange={e => setTargetPrice(e.target.value)}
+            />
+            <button
+              className="app-header-btn app-header-btn--active"
+              onClick={handleAdd}
+              style={{ background: 'white', borderRadius: '15px', width: '50px', height: 'auto' }}
+            >
+              {loading ? "..." : "+"}
+            </button>
           </div>
         </div>
       </section>
@@ -228,7 +228,7 @@ export default function WbDashboard() {
       <section className="section">
         <div className="section-header">
           <h2 className="section-title">Tracking ({items.length})</h2>
-          
+
           <div className="filter-container">
             <button className="app-header-btn" onClick={() => setIsFilterOpen(!isFilterOpen)}>
               <svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor">
@@ -272,48 +272,49 @@ export default function WbDashboard() {
 
           {filteredAndSortedItems.map(item => {
             return (
-            <motion.article
-              layout
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 , scale: 0.9 }}
-              key={item.id}
-            >
-              <article className="product">
-                <div className="product-image">
-                  <img src={item.imageUrl} alt={item.name} />
-                </div>
-                <div className="product-content">
-                  <h3 className="product-title">{item.name}</h3>
-                  <div style={{fontSize: '0.75rem', color: '#999', marginBottom: '5px', padding: '2px 6px'}}>
+              <motion.article
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                key={item.id}
+              >
+                <article className="product">
+                  <div className="product-image">
+                    <img src={item.imageUrl} alt={item.name} />
+                  </div>
+                  <div className="product-content">
+                    <h3 className="product-title">{item.name}</h3>
+                    <div style={{ fontSize: '0.75rem', color: '#999', marginBottom: '5px', padding: '2px 6px' }}>
                       Art: {item.article}
-                  </div>
-                
-                  <div className="threshold-info">
-                     <PriceEditor 
-                        id={item.id} 
-                        initialPrice={item.targetPrice} 
-                        onUpdate={handleUpdatePrice} 
+                    </div>
+
+                    <div className="threshold-info">
+                      <PriceEditor
+                        id={item.id}
+                        initialPrice={item.targetPrice}
+                        onUpdate={handleUpdatePrice}
                         isReached={item.lastNotifiedPrice !== null}
-                    />
-                  </div>
-                  <div className="product-info">
-                    <span className="product-price">{item.currentPrice} ₽</span>
-                    <button className="product-btn" onClick={() => window.open(`https://www.wildberries.ru/catalog/${item.article}/detail.aspx`, '_blank')}>
+                      />
+                    </div>
+                    <div className="product-info">
+                      <span className="product-price">{item.currentPrice} ₽</span>
+                      <button className="product-btn" onClick={() => window.open(`https://www.wildberries.ru/catalog/${item.article}/detail.aspx`, '_blank')}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                            <polyline points="15 3 21 3 21 9"></polyline>
-                            <line x1="10" y1="14" x2="21" y2="3"></line>
+                          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                          <polyline points="15 3 21 3 21 9"></polyline>
+                          <line x1="10" y1="14" x2="21" y2="3"></line>
                         </svg>
-                    </button>
-                    <button className="product-btn product-btn--delete" onClick={() => handleDelete(item.id)}>
-                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                    </button>
+                      </button>
+                      <button className="product-btn product-btn--delete" onClick={() => handleDelete(item.id)}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </article>
-            </motion.article>
-          )})}
+                </article>
+              </motion.article>
+            )
+          })}
         </div>
       </section>
     </>

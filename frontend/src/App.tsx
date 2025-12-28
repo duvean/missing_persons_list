@@ -11,12 +11,13 @@ import { apiFetch } from "./api";
 
 export default function App() {
   const [token, setToken] = useState<string | null>(localStorage.getItem("todo_token"));
+  const [isInitializing, setIsInitializing] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
-  
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -28,47 +29,52 @@ export default function App() {
   };
 
   useEffect(() => {
-      const validateSession = async () => {
-        if (!token) return;
-        try {
-          const res = await apiFetch("/auth/me");
-          if (res.ok) {
-            const data = await res.json();
-            fetchUserProfile();
-            setUserEmail(data.email);
-            fetchNotificationsCount(); 
-          } else {
-            console.log("Сессия истекла");
-            handleForceLogout();
-          }
-        } catch (e) {
-          console.log("Ошибка сети при проверке сессии");
+    const validateSession = async () => {
+      if (!token) {
+        setIsInitializing(false);
+        return;
+      }
+      try {
+        const res = await apiFetch("/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          fetchUserProfile();
+          setUserEmail(data.email);
+          fetchNotificationsCount();
+        } else {
+          console.log("Сессия истекла");
+          handleForceLogout();
         }
-      };
-      validateSession();
+      } catch (e) {
+        console.log("Ошибка сети при проверке сессии");
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+    validateSession();
   }, [token]);
 
   useEffect(() => {
-      const refreshData = async () => {
-          if (!token) return;
-          await fetchNotificationsCount();
-      };
-      const interval = setInterval(refreshData, 10000);
-      return () => clearInterval(interval);
+    const refreshData = async () => {
+      if (!token) return;
+      await fetchNotificationsCount();
+    };
+    const interval = setInterval(refreshData, 10000);
+    return () => clearInterval(interval);
   }, [token]);
 
   const fetchNotificationsCount = async () => {
-      try {
-        const res = await apiFetch("/notifications/unread");
-        if (res.ok) {
-          const data = await res.json();
-          setUnreadCount(data.count);
-        } else {
-          console.warn("Не удалось загрузить уведомления");
-        }
-      } catch (e) {
-        console.error("Ошибка соединения при загрузке уведомлений");
+    try {
+      const res = await apiFetch("/notifications/unread");
+      if (res.ok) {
+        const data = await res.json();
+        setUnreadCount(data.count);
+      } else {
+        console.warn("Не удалось загрузить уведомления");
       }
+    } catch (e) {
+      console.error("Ошибка соединения при загрузке уведомлений");
+    }
   };
 
   const fetchNotificationsList = async () => {
@@ -82,16 +88,24 @@ export default function App() {
     if (res.ok) setNotifications([]);
   };
 
-  const toggleSidebar = async () => {
-    if (!isSidebarOpen) {
-      await fetchNotificationsList();
-      setIsSidebarOpen(true);
-      if (unreadCount > 0) {
-        await apiFetch("/notifications/read-all", { method: "POST" });
+  const markNotificationsRead = async () => {
+    try {
+      const res = await apiFetch("/notifications/read-all", { method: "POST" });
+      if (res.ok) {
         setUnreadCount(0);
       }
-    } else {
-      setIsSidebarOpen(false);
+    } catch (e) {
+      console.error("Ошибка при обновлении статуса уведомлений", e);
+    }
+  };
+
+  const toggleSidebar = () => {
+    const nextState = !isSidebarOpen;
+    setIsSidebarOpen(nextState);
+
+    if (nextState) {
+      fetchNotificationsList();
+      markNotificationsRead();
     }
   };
 
@@ -114,8 +128,6 @@ export default function App() {
     handleForceLogout();
   };
 
-  if (!token) return <Auth onLogin={handleLogin} />;
-
   const PageTransition = ({ children }: any) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -128,9 +140,39 @@ export default function App() {
     </motion.div>
   );
 
-  const userAvatar = user?.telegramAvatar?.startsWith('http') 
-    ? user.telegramAvatar 
+  const userAvatar = user?.telegramAvatar?.startsWith('http')
+    ? user.telegramAvatar
     : user?.telegramAvatar ? `http://localhost:3000${user.telegramAvatar}` : null;
+
+  const memoizedRoutes = useMemo(() => (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route
+          path="/"
+          element={
+            <PageTransition>
+              <WbDashboard />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <PageTransition>
+              <Profile
+                userData={user}
+                onRefresh={fetchUserProfile}
+                onLogout={handleLogout}
+              />
+            </PageTransition>
+          }
+        />
+      </Routes>
+    </AnimatePresence>
+  ), [location, user, userEmail]);
+
+  if (!token) return <Auth onLogin={handleLogin} />;
+  if (isInitializing) { return; }
 
   return (
     <div className="app">
@@ -145,20 +187,20 @@ export default function App() {
           </svg>
         </button>
         <div className="app-header-title">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" />
-            </svg>
-            PRICE PULSE
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" />
+          </svg>
+          PRICE PULSE
         </div>
         <div className="header-actions">
-            <button className="app-header-btn app-header-btn--notification app-header-btn--active" onClick={toggleSidebar}>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 256 256" width="24" height="24">
-                <rect width="256" height="256" fill="none"></rect>
-                <path d="M56.2,104a71.9,71.9,0,0,1,72.3-72c39.6,0.3,71.3,33.2,71.3,72.9V112c0,35.8,7.5,56.6,14.1,68a8,8,0,0,1-6.9,12H49a8,8,0,0,1-6.9-12c6.6-11.4,14.1-32.2,14.1-68Z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></path>
-              </svg>
-              {unreadCount > 0 && <span className="unread-badge">{unreadCount}</span>}
-            </button>
-          </div>
+          <button className="app-header-btn app-header-btn--notification app-header-btn--active" onClick={toggleSidebar}>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 256 256" width="24" height="24">
+              <rect width="256" height="256" fill="none"></rect>
+              <path d="M56.2,104a71.9,71.9,0,0,1,72.3-72c39.6,0.3,71.3,33.2,71.3,72.9V112c0,35.8,7.5,56.6,14.1,68a8,8,0,0,1-6.9,12H49a8,8,0,0,1-6.9-12c6.6-11.4,14.1-32.2,14.1-68Z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16"></path>
+            </svg>
+            {unreadCount > 0 && <span className="unread-badge">{unreadCount}</span>}
+          </button>
+        </div>
       </header>
 
       {/* NOTIFICATIONS MENU */}
@@ -177,21 +219,21 @@ export default function App() {
             <div key={n.id} className="notif-item">
               <div className="notif-header">
                 <span className="notif-time">
-                  {new Date(n.createdAt).toLocaleString('ru-RU', { 
-                    day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' 
+                  {new Date(n.createdAt).toLocaleString('ru-RU', {
+                    day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
                   })}
                 </span>
               </div>
 
               <p className="notif-text-structured">{n.message}</p>
 
-              <button 
-                  className="notif-link-btn" 
-                  onClick={() => {
-                    if (n.productUrl) window.open(n.productUrl, '_blank', 'noopener,noreferrer');
-                  }}
-                >
-                  Перейти к товару
+              <button
+                className="notif-link-btn"
+                onClick={() => {
+                  if (n.productUrl) window.open(n.productUrl, '_blank', 'noopener,noreferrer');
+                }}
+              >
+                Перейти к товару
               </button>
             </div>
           ))}
@@ -200,16 +242,7 @@ export default function App() {
 
       {/* BODY */}
       <main className="app-body">
-        <AnimatePresence mode="wait">
-          <Routes location={location} key={location.pathname}>
-            <Route path="/" element={<PageTransition><WbDashboard /></PageTransition>} />
-            <Route path="/profile" element={
-              <PageTransition>
-                <Profile userData={user} onRefresh={fetchUserProfile} onLogout={handleLogout} />
-              </PageTransition>
-            } />
-          </Routes>
-        </AnimatePresence>
+        {memoizedRoutes}
       </main>
 
       {/* FOOTER NAV */}
@@ -217,11 +250,11 @@ export default function App() {
         <nav className="menu-bar">
           <Link to="/" className={`menu-bar-item ${location.pathname === '/' ? 'active' : ''}`}>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-               <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
             </svg>
             <span className="menu-bar-item-text">Dashboard</span>
           </Link>
-          
+
           <Link to="/profile" className={`menu-bar-item ${location.pathname === '/profile' ? 'active' : ''}`}>
             {userAvatar ? (
               <img src={userAvatar} alt="Profile" className="menu-bar-avatar" />
