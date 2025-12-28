@@ -1,22 +1,37 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { apiFetch } from "../api";
 import { WbItem } from "../interfaces";
 
-const PriceEditor = ({ id, initialPrice, onUpdate }: any) => {
+const PriceEditor = ({ id, initialPrice, onUpdate, isReached }: any) => {
     const [price, setPrice] = useState(initialPrice || "");
     const [isEditing, setIsEditing] = useState(false);
 
+    useEffect(() => {
+        setPrice(initialPrice || "");
+    }, [initialPrice]);
+
     const handleCommit = () => {
-        if (price !== initialPrice) {
-            onUpdate(id, Number(price));
+        const numericPrice = Number(price); 
+        if (numericPrice !== initialPrice && !isNaN(numericPrice)) {
+            onUpdate(id, numericPrice);
         }
         setIsEditing(false);
     };
 
     if (!isEditing) {
         return (
-            <div className="price-display" onClick={() => setIsEditing(true)}>
+            <div 
+                className={`price-display ${isReached ? 'status-reached' : 'status-waiting'}`} 
+                onClick={() => setIsEditing(true)}
+            >
+                <span className="status-icon">
+                    {isReached ? (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    ) : (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    )}
+                </span>
                 Цель: <span className="target-val">{initialPrice ? `${initialPrice} ₽` : "Не задано"}</span> ✎
             </div>
         );
@@ -24,14 +39,15 @@ const PriceEditor = ({ id, initialPrice, onUpdate }: any) => {
 
     return (
         <input 
-            type="number" 
-            className="price-edit-input"
-            autoFocus
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            onBlur={handleCommit}
-            onKeyDown={(e) => e.key === "Enter" && handleCommit()}
-        />
+          type="number" 
+          className="price-edit-input"
+          autoFocus
+          value={price}
+          onClick={(e) => e.stopPropagation()}
+          onChange={(e) => setPrice(e.target.value)}
+          onBlur={handleCommit}
+          onKeyDown={(e) => e.key === "Enter" && handleCommit()}
+      />
     );
 };
 
@@ -40,8 +56,11 @@ export default function WbDashboard() {
   const [urlInput, setUrlInput] = useState("");
   const [targetPrice, setTargetPrice] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isAdding, setIsAdding] = useState(false); // Для плейсхолдера
-  const [sortBy, setSortBy] = useState("newest");  // Состояние фильтра
+  const [isAdding, setIsAdding] = useState(false);
+  const [sortBy, setSortBy] = useState("newest");
+  const [showReached, setShowReached] = useState(true);
+  const [showWaiting, setShowWaiting] = useState(true);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const loadItems = async () => {
       const res = await apiFetch("/items");
@@ -53,11 +72,22 @@ export default function WbDashboard() {
 
   useEffect(() => { loadItems(); }, []);
 
-  const sortedItems = [...items].sort((a, b) => {
-    if (sortBy === "newest") return b.id - a.id;
-    if (sortBy === "oldest") return a.id - b.id;
-    return 0;
-  });
+  const filteredAndSortedItems = useMemo(() => {
+    return [...items]
+      .filter(item => {
+        const isReached = item.lastNotifiedPrice !== null;
+        if (isReached && !showReached) return false;
+        if (!isReached && !showWaiting) return false;
+        return true;
+      })
+      .sort((a, b) => {
+        const aReached = a.lastNotifiedPrice !== null ? 1 : 0;
+        const bReached = b.lastNotifiedPrice !== null ? 1 : 0;
+
+        if (aReached !== bReached) return bReached - aReached;
+        return sortBy === "newest" ? b.id - a.id : a.id - b.id;
+      });
+  }, [items, sortBy, showReached, showWaiting]);
 
   const handleAdd = async () => {
     if (!urlInput.trim()) {
@@ -105,15 +135,22 @@ export default function WbDashboard() {
   };
 
   const handleUpdatePrice = async (id: number, newPrice: number) => {
-      try {
-          const res = await apiFetch(`/items/${id}`, {
-              method: "PATCH",
-              body: JSON.stringify({ targetPrice: newPrice })
-          });
-          if (res.ok) {
-              setItems(items.map(i => i.id === id ? { ...i, targetPrice: newPrice } : i));
-          }
-      } catch (e) { console.error(e); }
+    try {
+      const res = await apiFetch(`/items/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ targetPrice: newPrice })
+      });
+
+      if (res.ok) {
+        setItems(prevItems => prevItems.map(item => 
+          item.id === id 
+            ? { ...item, targetPrice: Number(newPrice), lastNotifiedPrice: null }
+            : item
+        ));
+      }
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   return (
@@ -156,14 +193,37 @@ export default function WbDashboard() {
         <div className="section-header">
           <h2 className="section-title">Tracking ({items.length})</h2>
           
-          <select 
-            className="filter-select" 
-            value={sortBy} 
-            onChange={(e) => setSortBy(e.target.value)}
-          >
-            <option value="newest">Newest</option>
-            <option value="oldest">Oldest</option>
-          </select>
+          <div className="filter-container">
+            <button className="app-header-btn" onClick={() => setIsFilterOpen(!isFilterOpen)}>
+              <svg width="24" height="24" viewBox="0 0 256 256" fill="currentColor">
+                <path d="M200,128a8,8,0,0,1-8,8H64a8,8,0,0,1,0-16H192A8,8,0,0,1,200,128Zm32-64H24a8,8,0,0,0,0,16H232a8,8,0,0,0,0-16Zm-64,128H88a8,8,0,0,0,0,16h80a8,8,0,0,0,0-16Z"></path>
+              </svg>
+            </button>
+
+            {isFilterOpen && (
+              <div className="filter-dropdown">
+                <div className="filter-group">
+                  <label>Sorting</label>
+                  <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                    <option value="newest">Newest</option>
+                    <option value="oldest">Oldest</option>
+                  </select>
+                </div>
+
+                <div className="filter-group">
+                  <label>Статус</label>
+                  <div className="checkbox-item">
+                    <input type="checkbox" checked={showReached} onChange={() => setShowReached(!showReached)} id="reached" />
+                    <label htmlFor="reached">Reached</label>
+                  </div>
+                  <div className="checkbox-item">
+                    <input type="checkbox" checked={showWaiting} onChange={() => setShowWaiting(!showWaiting)} id="waiting" />
+                    <label htmlFor="waiting">Awaiting</label>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="product-grid">
@@ -174,7 +234,8 @@ export default function WbDashboard() {
             </article>
           )}
 
-          {sortedItems.map(item => (
+          {filteredAndSortedItems.map(item => {
+            return (
             <motion.div
               layout
               initial={{ opacity: 0, scale: 0.9 }}
@@ -192,7 +253,12 @@ export default function WbDashboard() {
                   </div>
                 
                   <div className="threshold-info">
-                     <PriceEditor id={item.id} initialPrice={item.targetPrice} onUpdate={handleUpdatePrice} />
+                     <PriceEditor 
+                        id={item.id} 
+                        initialPrice={item.targetPrice} 
+                        onUpdate={handleUpdatePrice} 
+                        isReached={item.lastNotifiedPrice !== null}
+                    />
                   </div>
                   <div className="product-info">
                     <span className="product-price">{item.currentPrice} ₽</span>
@@ -210,7 +276,7 @@ export default function WbDashboard() {
                 </div>
               </article>
             </motion.div>
-          ))}
+          )})}
         </div>
       </section>
     </>

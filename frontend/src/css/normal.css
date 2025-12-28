@@ -248,6 +248,34 @@ body::before {
 .product-btn--add { color: var(--c-purple-500); }
 .product-btn--delete { color: #ff4d4f; }
 
+
+.product--reached::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.1) 100%);
+  border-radius: 15px;
+  z-index: 1;
+}
+
+.product--reached .product-price, 
+.product--reached .threshold-info {
+  position: relative;
+  z-index: 2;
+  color: #fff !important;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+.product--reached .product-price {
+  font-size: 1.2rem;
+  color: #52c41a !important;
+}
+
+.product--reached .product-image,
+.product--reached .product-title {
+  opacity: 0.6;
+}
+
 /* --- INPUTS --- */
 .search-wrapper {
     padding: 0 var(--inner-gutter);
@@ -414,6 +442,49 @@ body::before {
 .filter-select:focus {
   border-color: var(--c-purple-500);
   box-shadow: 0 0 0 2px rgba(119, 98, 255, 0.2);
+}
+
+.filter-container { position: relative; }
+
+.filter-dropdown {
+  position: absolute;
+  top: 60px;
+  right: 0;
+  width: 200px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  padding: 15px;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.filter-group label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--c-grey-700);
+  margin-bottom: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.filter-dropdown select {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--c-grey-100);
+  font-family: inherit;
 }
 
 .product-grid {
@@ -585,15 +656,43 @@ body::before {
 
 /* Инпут редактирования цены */
 .price-display {
-    font-size: 12px; color: #666; cursor: pointer;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 0;
+    transition: color 0.3s ease;
 }
+
+.status-waiting {
+    color: #f39c12;
+}
+.status-waiting .target-val {
+    color: #e67e22;
+}
+
+/* Статус достигнутой цены (зеленый) */
+.status-reached {
+    color: #27ae60;
+}
+.status-reached .target-val {
+    color: #2ecc71;
+}
+
+.status-icon {
+    display: flex;
+    align-items: center;
+}
+
 .target-val { font-weight: bold; color: #4caf50; }
 .price-edit-input {
     width: 80px;
     padding: 4px;
-    border: 1px solid #007bff;
-    border-radius: 4px;
+    border: 2px solid var(--c-purple-300);
+    border-radius: 8px;
     font-size: 12px;
+    outline: none;
 }
 
 .main-viewport {

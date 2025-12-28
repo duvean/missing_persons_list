@@ -24,6 +24,7 @@ export interface WbItem {
     currentPrice: number;
     oldPrice: number;
     targetPrice: number;
+    lastNotifiedPrice: number | null;
     imageUrl: string;
     stock?: number;
 }
